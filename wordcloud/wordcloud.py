@@ -18,7 +18,7 @@ from .query_integral_image import query_integral_image
 
 item1 = itemgetter(1)
 
-FONT_PATH = os.environ.get("FONT_PATH", "/usr/share/fonts/truetype/droid/DroidSansMono.ttf")
+FONT_PATH = r"C:\Windows\Fonts\consola.ttf"
 STOPWORDS = set([x.strip() for x in open(os.path.join(os.path.dirname(__file__),
                                                       'stopwords')).read().split('\n')])
 
@@ -233,13 +233,14 @@ class WordCloud(object):
         self.layout_ = list(zip(words, font_sizes, positions, orientations, colors))
         return self.layout_
 
-    def process_text(self, text):
+    def process_text(self, text,exclude=None):
         """Splits a long text into words, eliminates the stopwords.
 
         Parameters
         ----------
         text : string
             The text to be processed.
+        exclude : list of strings to be excluded
 
         Returns
         -------
@@ -289,6 +290,9 @@ class WordCloud(object):
                     val_singular = d3[key_singular]
                     d3[key_singular] = val_singular + val_plural
                     del d3[key]
+            if exclude is not None:
+                if key in exclude:
+                    del d3[key]
 
         words = sorted(d3.items(), key=item1, reverse=True)
         words = words[:self.max_words]
@@ -300,16 +304,22 @@ class WordCloud(object):
 
         return words
 
-    def generate(self, text):
+    def generate(self, text,exclude=None):
         """Generate wordcloud from text.
 
         Calls process_text and fit_words.
+
+        Parameters
+        ----------
+        text : string
+            The text to be processed.
+        exclude : list of strings to be excluded
 
         Returns
         -------
         self
         """
-        self.process_text(text)
+        self.process_text(text,exclude=exclude)
         self.fit_words(self.words_)
         return self
 

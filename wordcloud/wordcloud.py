@@ -96,7 +96,8 @@ class WordCloud(object):
     def __init__(self, font_path=None, width=400, height=200, margin=5,
                  ranks_only=False, prefer_horizontal=0.9, mask=None, scale=1,
                  color_func=random_color_func, max_words=200, stopwords=None,
-                 random_state=None, background_color='black', max_font_size=None):
+                 random_state=None, background_color='black', max_font_size=None,
+                 exclude=None):
         if stopwords is None:
             stopwords = STOPWORDS
         if font_path is None:
@@ -119,6 +120,7 @@ class WordCloud(object):
         if max_font_size is None:
             max_font_size = height
         self.max_font_size = max_font_size
+        self.exclude = [] if exclude is None else exclude
 
     def fit_words(self, words):
         """Generate the positions for words.
@@ -233,14 +235,13 @@ class WordCloud(object):
         self.layout_ = list(zip(words, font_sizes, positions, orientations, colors))
         return self.layout_
 
-    def process_text(self, text,exclude=None):
+    def process_text(self, text):
         """Splits a long text into words, eliminates the stopwords.
 
         Parameters
         ----------
         text : string
             The text to be processed.
-        exclude : list of strings to be excluded
 
         Returns
         -------
@@ -253,6 +254,8 @@ class WordCloud(object):
         There are better ways to do word tokenization, but I don't want to
         include all those things.
         """
+
+        exclude=self.exclude 
 
         d = {}
         flags = re.UNICODE if sys.version < '3' and \
@@ -290,9 +293,8 @@ class WordCloud(object):
                     val_singular = d3[key_singular]
                     d3[key_singular] = val_singular + val_plural
                     del d3[key]
-            if exclude is not None:
-                if key in exclude:
-                    del d3[key]
+            if key in exclude:
+                 del d3[key]
 
         words = sorted(d3.items(), key=item1, reverse=True)
         words = words[:self.max_words]
@@ -304,7 +306,7 @@ class WordCloud(object):
 
         return words
 
-    def generate(self, text,exclude=None):
+    def generate(self, text):
         """Generate wordcloud from text.
 
         Calls process_text and fit_words.
@@ -313,13 +315,12 @@ class WordCloud(object):
         ----------
         text : string
             The text to be processed.
-        exclude : list of strings to be excluded
 
         Returns
         -------
         self
         """
-        self.process_text(text,exclude=exclude)
+        self.process_text(text)
         self.fit_words(self.words_)
         return self
 
